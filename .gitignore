@@ -1,0 +1,44 @@
+# Gradle cache & locks (Root and subdirectories)
+.gradle/
+**/.gradle/
+build/
+**/build/
+
+# Local machine paths
+local.properties
+**/local.properties
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+
+# IDE & Editor
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Flutter & Dart
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Firebase & Secret configs
+**/google-services.json
+**/GoogleService-Info.plist
+*.env
+.env.*
+!*.env.example
+firebase_options.dart
