@@ -19,6 +19,7 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   bool _isSavingName = false;
   bool _isSendingReset = false;
+  bool _isDeletingAccount = false;
 
   @override
   void initState() {
@@ -55,6 +56,68 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  void _handleDeleteAccount(AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Excluir Minha Conta",
+          style: TextStyle(fontWeight: FontWeight.bold, color: KinColors.text),
+        ),
+        content: const Text(
+          "Esta ação removerá permanentemente seu perfil e suas credenciais de acesso da base de dados.\n\nDeseja confirmar a exclusão definitiva?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancelar", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFB71C1C),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+
+              setState(() => _isDeletingAccount = true);
+              try {
+                await auth.deleteOwnAccount();
+                // Technical: State stream automatically redirects unauthenticated sessions cleanly to login
+              } catch (error) {
+                if (!mounted) return;
+                // Technical: Display error in centered modal to prevent bottom snackbar friction
+                showDialog(
+                  context: context,
+                  builder: (errCtx) => AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    backgroundColor: Colors.white,
+                    title: const Text("Não foi possível excluir"),
+                    content: Text(error.toString().replaceAll('Exception: ', '')),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(errCtx),
+                        child: const Text("Entendido"),
+                      ),
+                    ],
+                  ),
+                );
+              } finally {
+                if (mounted) setState(() => _isDeletingAccount = false);
+              }
+            },
+            child: const Text(
+              "EXCLUIR CONTA",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openFamilyModal() {
     showDialog(
       context: context,
@@ -73,6 +136,7 @@ class _AccountScreenState extends State<AccountScreen> {
       builder: (ctx) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
           title: const Text(
             "Alterar Nome",
             style: TextStyle(fontWeight: FontWeight.bold, color: KinColors.text),
@@ -118,17 +182,28 @@ class _AccountScreenState extends State<AccountScreen> {
             TextButton(
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final messenger = ScaffoldMessenger.of(context);
                   final navigator = Navigator.of(ctx);
-
                   navigator.pop();
 
                   setState(() => _isSavingName = true);
                   try {
                     await auth.updateProfileName(nameController.text.trim());
                   } catch (error) {
-                    messenger.showSnackBar(
-                      SnackBar(content: Text(error.toString().replaceAll('Exception: ', ''))),
+                    if (!mounted) return;
+                    showDialog(
+                      context: context,
+                      builder: (errCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        backgroundColor: Colors.white,
+                        title: const Text("Erro ao atualizar"),
+                        content: Text(error.toString().replaceAll('Exception: ', '')),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(errCtx),
+                            child: const Text("Entendido"),
+                          ),
+                        ],
+                      ),
                     );
                   } finally {
                     if (mounted) setState(() => _isSavingName = false);
@@ -153,6 +228,7 @@ class _AccountScreenState extends State<AccountScreen> {
       builder: (ctx) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
           title: const Text("Redefinir Senha", style: TextStyle(fontWeight: FontWeight.bold, color: KinColors.text)),
           content: Text("Deseja enviar o link de redefinição de senha para o endereço $email?"),
           actions: [
@@ -162,9 +238,7 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
                 final navigator = Navigator.of(ctx);
-
                 navigator.pop();
 
                 setState(() => _isSendingReset = true);
@@ -177,6 +251,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       barrierDismissible: true,
                       builder: (spamCtx) => AlertDialog(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        backgroundColor: Colors.white,
                         title: const Row(
                           children: [
                             Icon(Icons.mail_outline, color: KinColors.primary),
@@ -223,10 +298,20 @@ class _AccountScreenState extends State<AccountScreen> {
                     );
                   }
                 } catch (error) {
-                  messenger.showSnackBar(
-                    SnackBar(
+                  if (!mounted) return;
+                  showDialog(
+                    context: context,
+                    builder: (errCtx) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      backgroundColor: Colors.white,
+                      title: const Text("Erro ao enviar"),
                       content: Text(error.toString().replaceAll('Exception: ', '')),
-                      backgroundColor: Colors.red,
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(errCtx),
+                          child: const Text("Entendido"),
+                        ),
+                      ],
                     ),
                   );
                 } finally {
@@ -267,7 +352,7 @@ class _AccountScreenState extends State<AccountScreen> {
           SingleChildScrollView(
             child: Column(
               children: [
-                // Header Section
+                // Technical: Profile Header Section
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.only(top: 60, bottom: 30),
@@ -291,7 +376,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
 
-                      // Role Badge
+                      // Technical: Role Badge Indicator
                       Container(
                         margin: const EdgeInsets.only(top: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -314,7 +399,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                 ),
 
-                // Settings Menu
+                // Technical: Configuration Settings Section
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -332,7 +417,9 @@ class _AccountScreenState extends State<AccountScreen> {
                       _buildMenuItem(
                         icon: Icons.person_outline,
                         title: "Nome de Exibição",
-                        onTap: _isSavingName ? null : () => _openEditNameDialog(auth, currentName),
+                        onTap: (_isSavingName || _isDeletingAccount)
+                            ? null
+                            : () => _openEditNameDialog(auth, currentName),
                       ),
                       if (canManageFamily)
                         _buildMenuItem(
@@ -343,7 +430,9 @@ class _AccountScreenState extends State<AccountScreen> {
                       _buildMenuItem(
                         icon: Icons.lock_outline,
                         title: "Segurança e Senha",
-                        onTap: _isSendingReset ? null : () => _handlePasswordReset(auth),
+                        onTap: (_isSendingReset || _isDeletingAccount)
+                            ? null
+                            : () => _handlePasswordReset(auth),
                       ),
                       if (PlatformHelper.isIOS)
                         _buildMenuItem(
@@ -384,15 +473,32 @@ class _AccountScreenState extends State<AccountScreen> {
                           );
                         },
                       ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "PRIVACIDADE E DADOS",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildMenuItem(
+                        icon: Icons.delete_outline,
+                        title: "Excluir Minha Conta (LGPD)",
+                        iconColor: const Color(0xFFC62828),
+                        textColor: const Color(0xFFC62828),
+                        onTap: _isDeletingAccount ? null : () => _handleDeleteAccount(auth),
+                      ),
                     ],
                   ),
                 ),
 
-                // Logout Button
+                // Technical: Session Termination Trigger
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: InkWell(
-                    onTap: () => _handleLogout(auth),
+                    onTap: _isDeletingAccount ? null : () => _handleLogout(auth),
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -418,12 +524,13 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 30),
               ],
             ),
           ),
 
-          // Processing Overlay
-          if (_isSavingName || _isSendingReset)
+          // Technical: Global Blocking Overlay During Asynchronous Operations
+          if (_isSavingName || _isSendingReset || _isDeletingAccount)
             Container(
               color: Colors.black.withValues(alpha: 0.1),
               child: const Center(
@@ -439,7 +546,17 @@ class _AccountScreenState extends State<AccountScreen> {
     required IconData icon,
     required String title,
     required VoidCallback? onTap,
+    Color? iconColor,
+    Color? textColor,
   }) {
+    final effectiveIconColor = onTap == null
+        ? Colors.grey
+        : (iconColor ?? KinColors.text);
+
+    final effectiveTextColor = onTap == null
+        ? Colors.grey
+        : (textColor ?? KinColors.text);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -448,12 +565,12 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       child: ListTile(
         onTap: onTap,
-        leading: Icon(icon, color: onTap == null ? Colors.grey : KinColors.text),
+        leading: Icon(icon, color: effectiveIconColor),
         title: Text(
           title,
           style: TextStyle(
             fontWeight: FontWeight.w500,
-            color: onTap == null ? Colors.grey : KinColors.text,
+            color: effectiveTextColor,
           ),
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),

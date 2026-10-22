@@ -6,7 +6,7 @@ import 'package:web/web.dart' as web;
 
 import 'package:kincare/core/theme/app_theme.dart';
 import 'package:kincare/features/account/presentation/pages/account_screen.dart';
-import 'package:kincare/features/orders/presentation/screens/orders_screen.dart';
+import 'package:kincare/features/orders/presentation/pages/orders_screen.dart';
 import 'package:kincare/features/stock/presentation/pages/stock_screen.dart';
 
 class MainNavigation extends StatefulWidget {

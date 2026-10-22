@@ -285,4 +285,39 @@ class AuthProvider with ChangeNotifier {
     _profileSubscription?.cancel();
     super.dispose();
   }
+
+  // Logic: Complete self-account deletion respecting privacy regulations (LGPD/GDPR)
+  Future<void> deleteOwnAccount() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      throw Exception('Nenhum usuário autenticado encontrado.');
+    }
+
+    final uid = currentUser.uid;
+
+    try {
+      // 1. Technical: Delete Firestore user document first
+      await _db.collection('users').doc(uid).delete();
+
+      // 2. Technical: Delete Firebase Authentication user record
+      await currentUser.delete();
+
+      // 3. Technical: Clean local runtime state
+      _firebaseUser = null;
+      _userProfile = null;
+      notifyListeners();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        throw Exception(
+          'Por segurança, encerre a sessão, faça login novamente e solicite a exclusão da conta.',
+        );
+      }
+      throw Exception(_getUiErrorMessage(e.code));
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Account deletion error: $e');
+      }
+      throw Exception('Ocorreu um erro ao excluir a conta. Tente novamente.');
+    }
+  }
 }

@@ -86,36 +86,65 @@ class _StockScreenState extends State<StockScreen> {
         builder: (dialogContext) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text("Confirmar Descarte"),
-          content: Text("O item \"${item.description}\" está com validade expirada. Confirmar o descarte e registro no histórico?"),
+          content: Text(
+            "O item \"${item.description}\" está com validade expirada. Confirmar o descarte e registro no histórico?",
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text("Cancelar", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB71C1C)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFB71C1C),
+              ),
               onPressed: () async {
-                await stockService.processStockDisposal(item: item);
-                if (dialogContext.mounted) Navigator.pop(dialogContext);
+                // Technical: Dismiss confirmation modal immediately to prevent UI blocking
+                Navigator.pop(dialogContext);
 
-                if (mounted) {
-                  showDialog(
-                    context: context,
-                    builder: (successContext) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
+                try {
+                  await stockService.processStockDisposal(item: item);
+
+                  // Technical: Guard against asynchronous context dismounting
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
                         children: [
-                          const Icon(Icons.delete_forever, color: Color(0xFFB71C1C), size: 48),
-                          const SizedBox(height: 16),
-                          Text("${item.description} descartado e arquivado com sucesso.", textAlign: TextAlign.center),
+                          const Icon(Icons.delete_forever, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "${item.description} descartado e arquivado com sucesso.",
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
+                      backgroundColor: const Color(0xFFB71C1C),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Erro ao registrar o descarte: $e"),
+                      backgroundColor: Colors.red.shade800,
+                      behavior: SnackBarBehavior.floating,
                     ),
                   );
                 }
               },
-              child: const Text("DESCARTAR", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text(
+                "DESCARTAR",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
