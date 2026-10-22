@@ -34,11 +34,22 @@ local.properties
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+.pub-cache/
+.pub/
 
-# Firebase & Secret configs
+# Firebase, Credentials & Secrets
 **/google-services.json
 **/GoogleService-Info.plist
+*service-account*.json
 *.env
 .env.*
 !*.env.example
 firebase_options.dart
+!firebase_options.dart.example
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Flutter Web & Hosting release artifacts
+public/

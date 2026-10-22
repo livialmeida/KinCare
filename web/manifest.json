@@ -1,11 +1,11 @@
 {
-    "name": "kincare",
-    "short_name": "kincare",
+    "name": "KinCare",
+    "short_name": "KinCare",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F8FAFC",
+    "theme_color": "#F8FAFC",
+    "description": "Gestão colaborativa de despensa e refeições familiares",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
