@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/stock_item.dart';
 
+// UI Translation Dictionary for locations
+const Map<String, String> _locationTranslations = {
+  'fridge': 'geladeira',
+  'freezer': 'freezer',
+  'pantry': 'despensa',
+};
+
 void showMoveStockModal(BuildContext context, StockItem item) {
   showModalBottomSheet(
     context: context,
@@ -30,6 +37,7 @@ class _MoveStockContentState extends State<_MoveStockContent> {
   @override
   Widget build(BuildContext context) {
     final String currentLoc = widget.item.location.toLowerCase();
+    final String currentLocDisplay = _locationTranslations[currentLoc] ?? widget.item.location;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -57,7 +65,7 @@ class _MoveStockContentState extends State<_MoveStockContent> {
           ),
 
           Text(
-            "Armazenamento atual: ${widget.item.location}",
+            "Armazenamento atual: $currentLocDisplay",
             style: const TextStyle(
               color: Colors.blueGrey,
               fontSize: 14,
@@ -114,7 +122,7 @@ class _MoveStockContentState extends State<_MoveStockContent> {
           if (!currentLoc.contains('fridge'))
             _buildMoveOption(
               icon: Icons.kitchen,
-              label: "Transferir para Geladeira",
+              label: "Transferir para a geladeira",
               targetLocation: "fridge",
               targetStatus: widget.item.wasFrozen
                   ? 'consumption'
@@ -124,7 +132,7 @@ class _MoveStockContentState extends State<_MoveStockContent> {
           if (!currentLoc.contains('freezer'))
             _buildMoveOption(
               icon: Icons.ac_unit,
-              label: "Transferir para Freezer",
+              label: "Transferir para o freezer",
               targetLocation: "freezer",
               targetStatus:
               (currentLoc.contains('fridge') && widget.item.wasFrozen)
@@ -136,7 +144,7 @@ class _MoveStockContentState extends State<_MoveStockContent> {
               !currentLoc.contains('armário'))
             _buildMoveOption(
               icon: Icons.inventory_2,
-              label: "Transferir para Despensa",
+              label: "Transferir para a despensa",
               targetLocation: "pantry",
               targetStatus: 'in_stock',
             ),
@@ -163,16 +171,13 @@ class _MoveStockContentState extends State<_MoveStockContent> {
   }
 
   void _confirmMove(String targetLocation, String targetStatus) {
-    final bool goingToFreezer = targetLocation.toLowerCase().contains('freezer');
+    final String targetLocLower = targetLocation.toLowerCase();
+    final bool goingToFreezer = targetLocLower.contains('freezer');
 
-    // UI Translation Map
-    const Map<String, String> locationTranslations = {
-      'fridge': 'a geladeira',
-      'freezer': 'o freezer',
-      'pantry': 'a despensa',
-    };
-
-    final String translatedLocation = locationTranslations[targetLocation.toLowerCase()] ?? targetLocation;
+    // UI Translation Logic
+    final String targetName = _locationTranslations[targetLocLower] ?? targetLocation;
+    final String targetArticle = (targetLocLower == 'freezer') ? 'o' : 'a';
+    final String translatedLocation = "$targetArticle $targetName";
 
     // UI Logic: Detect if this is the second (and last allowed) refreeze cycle
     final bool isLastAllowedRefreeze = goingToFreezer &&
@@ -183,13 +188,15 @@ class _MoveStockContentState extends State<_MoveStockContent> {
       context: context,
       builder: (confirmContext) => AlertDialog(
         title: const Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.orange),
             SizedBox(width: 10),
             Expanded(
-                child: Text("Confirmar movimentação"),
-            )
+              child: Text(
+                "Confirmar movimentação",
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -259,7 +266,7 @@ class _MoveStockContentState extends State<_MoveStockContent> {
                 Icon(Icons.warning_amber_rounded, color: Colors.orange),
                 SizedBox(width: 10),
                 Expanded(
-                    child: Text("Aviso Sanitário"),
+                  child: Text("Aviso Sanitário"),
                 )
               ],
             ),
