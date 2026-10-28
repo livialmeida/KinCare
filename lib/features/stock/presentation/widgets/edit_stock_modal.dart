@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kincare/core/theme/app_theme.dart';
+import 'package:kincare/core/utils/time_helper.dart';
 import '../../domain/stock_item.dart';
 
 class EditStockModal extends StatefulWidget {
@@ -101,6 +102,20 @@ class _EditStockModalState extends State<EditStockModal> {
 
   // Logic: Mutate existing stock record enforcing dictionary and security compliance
   Future<void> _handleUpdateStock() async {
+    // Security Logic: double-check 3-hour time window validity before firing mutations
+    final Timestamp? itemTimestamp = widget.item.createdAt != null
+      ? Timestamp.fromDate(widget.item.createdAt!)
+      : null;
+    final bool isWithinTime = TimeHelper.isWithinWindow(itemTimestamp);
+
+    if (!isWithinTime) {
+      if (mounted) {
+        await _showTimeExpiredAlert();
+        if (mounted) Navigator.pop(context);
+      }
+      return;
+    }
+
     final finalName = _nameController.text.trim();
     final quantity = _qtyController.text.trim();
     final bool startingInFreezer = _storageLocation == "freezer";
@@ -138,9 +153,48 @@ class _EditStockModalState extends State<EditStockModal> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
+  
+  // UI Logic: Warning alert dialog 
+  Future<void> _showTimeExpiredAlert() async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(
+              children: [
+                Icon(Icons.timer_off_outlined, color: Colors.redAccent),
+                SizedBox(width: 8),
+                Text(
+                  "Prazo Expirado",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: const Text(
+              "O tempo limite de 3 horas para correção deste item expirou.",
+              style: TextStyle(fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(dialogContext), 
+                  child: const Text("Entendi", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        }
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Logic: check time window to control UI editability
+    final Timestamp? itemTimestamp = widget.item.createdAt != null
+      ? Timestamp.fromDate(widget.item.createdAt!)
+      : null;
+    final bool isWithinTime = TimeHelper.isWithinWindow(itemTimestamp);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
@@ -227,7 +281,10 @@ class _EditStockModalState extends State<EditStockModal> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildPrimaryButton("Salvar Alterações", _handleUpdateStock),
+              _buildPrimaryButton(
+                  "Salvar Alterações",
+                  (!isWithinTime || _isLoading) ? () {} : _handleUpdateStock
+              ),
               _buildCancelButton("Cancelar", () => Navigator.pop(context)),
             ],
           ),

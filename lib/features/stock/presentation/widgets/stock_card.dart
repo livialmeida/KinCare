@@ -61,8 +61,6 @@ class _StockCardState extends State<StockCard> {
 
   // Logic: Calculate remaining window time from Core and schedule a forced UI refresh
   void _startCountdown() {
-    if (widget.isManagement) return;
-
     final DateTime? createdAt = widget.item.createdAt;
     if (createdAt == null) return;
 
@@ -169,16 +167,11 @@ class _StockCardState extends State<StockCard> {
 
     // Rule: If createdAt is null, it means Firestore server timestamp is still pending initialization.
     // In this edge case, we trust the local intent and allow editing until the true token arrives.
-    final bool timeCheckPassed;
-    if (item.createdAt == null) {
-      timeCheckPassed = true;
-    } else {
-      // Technical: Pass converted timestamp directly to Core helper to avoid unused local variables
-      timeCheckPassed = TimeHelper.isWithinWindow(Timestamp.fromDate(item.createdAt!));
-    }
+    final bool timeCheckPassed = item.createdAt != null &&
+      TimeHelper.isWithinWindow(Timestamp.fromDate(item.createdAt!));
 
     // Consolidated permission schema for administrative actions (Bypass allows edit/delete window)
-    final bool canAdminister = widget.isManagement || timeCheckPassed;
+    final bool canAdminister = timeCheckPassed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),

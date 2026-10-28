@@ -58,7 +58,7 @@ class ModalUserGuide extends StatelessWidget {
                       const SizedBox(height: 14),
                       _buildGuideTextRow(
                         "Administração (Admin)",
-                        "Responsável pela gestão residencial. Possui controle cadastral sobre os membros, autoriza solicitações de acesso à despensa, cadastra e organiza os itens do estoque e emite pedidos de refeição.",
+                        "Responsável pela gestão residencial. Possui controle cadastral sobre os membros, autoriza solicitações de acesso à despensa, emite pedidos de refeição, consome os itens produzidos pelo suporte e faz a gestão da localização dos itens no estoque/despensa.",
                       ),
                       _buildGuideTextRow(
                         "Suporte e Cozinha (Support)",
@@ -123,15 +123,21 @@ class ModalUserGuide extends StatelessWidget {
                   // Section 3: Food States
                   _buildGuideCard(
                     icon: Icons.swap_horiz_outlined,
-                    title: "3. Estados e Ciclos do Alimento",
+                    title: "3. Entendendo os Estados da Comida",
                     children: [
                       const Text(
-                        "O ciclo de conservação do estoque monitora transições físicas para orientar o consumo seguro:",
+                        "Para os responsáveis pela cozinha, cada alimento percorre etapas cruciais no inventário:",
                         style: TextStyle(fontSize: 14, color: KinColors.text, height: 1.45),
                       ),
                       const SizedBox(height: 14),
-                      _buildGuideTextRow("Localização Física", "Informa onde o lote se encontra armazenado (Despensa, Geladeira ou Freezer)."),
-                      _buildGuideTextRow("Descongelamento", "Sinaliza que o item foi transferido do freezer para a geladeira. A validade técnica é recalculada automaticamente para prazo de consumo sob refrigeração."),
+                      _buildGuideTextRow(
+                          "Armário / Geladeira / Freezer",
+                          "Indica a localização física atual do alimento no estoque."
+                      ),
+                      _buildGuideTextRow(
+                          "Descongelado / Descongelando",
+                          "Indica que o item saiu do freezer e está em processo de degelo ou já descongelado na geladeira. Monitoramento sanitário essencial para garantir a segurança alimentar."
+                      ),
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -148,7 +154,7 @@ class ModalUserGuide extends StatelessWidget {
                                 Icon(Icons.warning_amber_rounded, color: Color(0xFFC5221F), size: 18),
                                 SizedBox(width: 6),
                                 Text(
-                                  "Recongelamento - Atenção Crítica",
+                                  "Recongelado - Atenção Redobrada",
                                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFFC5221F)),
                                 ),
                               ],
@@ -164,7 +170,7 @@ class ModalUserGuide extends StatelessWidget {
                     ],
                   ),
 
-                  // Section 4: Order Flows
+// Section 4: Order Flows
                   _buildGuideCard(
                     icon: Icons.assignment_outlined,
                     title: "4. Fluxos de Solicitação e Entrega",
@@ -174,24 +180,58 @@ class ModalUserGuide extends StatelessWidget {
                         style: TextStyle(fontSize: 14, color: KinColors.text, height: 1.45),
                       ),
                       const SizedBox(height: 14),
+
+                      // Flow 1: Regular Request Pipeline
                       _buildGuideTextRow(
-                        "Iniciativa Própria de Preparo",
-                        "Quando a equipe de apoio ou cozinha decide preparar um lote voluntariamente. O registro pode ser feito de forma avulsa e inserido diretamente no estoque.",
-                      ),
-                      _buildGuideTextRow(
-                        "Preparo com Visibilidade Restrita (Surpresa)",
-                        "Permite registrar preparos mantendo o item oculto dos membros da administração até que a entrega física seja concluída.",
+                        "1. Fluxo Regular de Pedidos",
+                        "Solicitações criadas por membros da família, percorrendo uma esteira estruturada de quatro etapas até a conclusão:",
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        "Fluxo Regular de Pedidos",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: KinColors.text),
+                      Container(
+                        margin: const EdgeInsets.only(left: 8, bottom: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE9ECEF)),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildGuideStatusRow(
+                              Icons.mail_outline,
+                              "Solicitado",
+                              "O pedido é registrado pelo membro e entra na fila da cozinha como pendente.",
+                            ),
+                            _buildGuideStatusRow(
+                              Icons.check_circle_outline,
+                              "Aceito",
+                              "Um responsável assume o preparo da solicitação.",
+                            ),
+                            _buildGuideStatusRow(
+                              Icons.soup_kitchen_outlined,
+                              "Em Preparo",
+                              "A refeição está em processo ativo de produção.",
+                            ),
+                            _buildGuideStatusRow(
+                              Icons.inventory_2_outlined,
+                              "Entrega",
+                              "O prato é finalizado, tem o local e validade definidos e dá entrada oficial no estoque.",
+                            ),
+                          ],
+                        ),
                       ),
-                      const Divider(height: 16),
-                      _buildGuideStatusRow(Icons.mail_outline, "Solicitado", "O pedido é registrado pelo membro e entra na fila da cozinha como pendente."),
-                      _buildGuideStatusRow(Icons.check_circle_outline, "Aceito", "Um responsável assume o preparo da solicitação."),
-                      _buildGuideStatusRow(Icons.soup_kitchen_outlined, "Em Preparo", "A refeição está em processo de produção."),
-                      _buildGuideStatusRow(Icons.inventory_2_outlined, "Entrega", "O prato é finalizado, tem o local e prazo de conservação definidos e dá entrada oficial no estoque."),
+
+                      // Flow 2: Proactive Cooking
+                      _buildGuideTextRow(
+                        "2. Iniciativa Própria de Preparo",
+                        "Quando os responsáveis pela cozinha decidem preparar um lote de forma voluntária, permitindo a entrada direta do item no estoque sem solicitação prévia.",
+                      ),
+
+                      // Flow 3: Discrete/Surprise Preparation
+                      _buildGuideTextRow(
+                        "3. Preparo Surpresa (Mimo)",
+                        "Destinado a carinhos e mimos culinários preparados em segredo. Mantém o item oculto da visualização dos membros até a entrega final, garantindo que o gesto surpresa seja uma boa experiência. ",
+                      ),
                     ],
                   ),
 
@@ -214,17 +254,17 @@ class ModalUserGuide extends StatelessWidget {
                   // Section 6: Notifications and Alerts
                   _buildGuideCard(
                     icon: Icons.notifications_none_outlined,
-                    title: "6. Sistema de Notificações e Alertas",
+                    title: "6. Notificações e Alertas (Roadmap)",
                     children: [
                       const Text(
-                        "O KinCare envia alertas operacionais para manter os membros informados sobre o andamento dos preparos e o estado do inventário:",
+                        "O ecossistema conta com pipeline de mensageria desenhado para manter os usuários informados sobre prazos e status operacionais:",
                         style: TextStyle(fontSize: 14, color: KinColors.text, height: 1.45),
                       ),
                       const SizedBox(height: 14),
 
                       // Profile: Admin
                       const Text(
-                        "ADMINISTRAÇÃO",
+                        "FLUXOS ADMINISTRATIVOS",
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.grey, letterSpacing: 0.5),
                       ),
                       const Divider(height: 16),
@@ -245,17 +285,13 @@ class ModalUserGuide extends StatelessWidget {
 
                       // Profile: Support
                       const Text(
-                        "SUPORTE E COZINHA",
+                        "FLUXOS DE COZINHA E SUPORTE ",
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.grey, letterSpacing: 0.5),
                       ),
                       const Divider(height: 16),
                       _buildGuideTextRow(
                         "Novas Demandas",
                         "Notificações instantâneas quando novos pedidos são registrados pelos membros da residência.",
-                      ),
-                      _buildGuideTextRow(
-                        "Alertas de Reposição",
-                        "Avisos operacionais sobre níveis mínimos de itens e prazos de validade das preparações sob sua responsabilidade.",
                       ),
 
                       const SizedBox(height: 6),
@@ -275,16 +311,14 @@ class ModalUserGuide extends StatelessWidget {
                                 Icon(Icons.info_outline, color: Color(0xFF1967D2), size: 18),
                                 SizedBox(width: 6),
                                 Text(
-                                  "Configuração de Dispositivos",
+                                  "Nota de Arquitetura",
                                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1967D2)),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 6),
+                            SizedBox(height: 4),
                             Text(
-                              "• Web (Navegador): Conceda permissão no prompt do navegador e certifique-se de que a página mantenha autorização para notificações em segundo plano.\n\n"
-                                  "• Android: Autorize o envio de notificações no primeiro acesso e, nas opções do sistema, desative a 'Otimização de Bateria' para o aplicativo para evitar atrasos na entrega dos avisos.\n\n"
-                                  "• iOS: Para suporte a notificações na Web, utilize a opção 'Adicionar à Tela de Início' no Safari e acesse a partir do atalho criado para habilitar os avisos push.",
+                              "As regras de negócio, tópicos FCM e rotinas agendadas foram desenvolvidos no ambiente de produção privado. Nesta versão pública e demonstrativa, os triggers de cloud functions e mensageria push permanecem desacoplados para manter o repositório 100% autônomo e sem custos fixos de infraestrutura.",
                               style: TextStyle(fontSize: 13, color: Color(0xFF1967D2), height: 1.45),
                             ),
                           ],

@@ -153,7 +153,7 @@ class _ModalNewRequestState extends State<ModalNewRequest> {
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
-                  .where('role', whereIn: ['admin', 'support'])
+                  .where('role', isEqualTo: 'support')
                   .snapshots(),
               builder: (context, snapshot) {
                 List<Widget> options = [];

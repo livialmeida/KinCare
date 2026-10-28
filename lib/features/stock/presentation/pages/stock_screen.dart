@@ -279,23 +279,45 @@ class _StockScreenState extends State<StockScreen> {
                   ? _db.collection('stock').orderBy('expiryDate', descending: false).snapshots()
                   : _db.collection('stock')
                   .where('authorId', isEqualTo: _auth.currentUser?.uid)
-                  .orderBy('expiryDate', descending: false)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasError) return const Center(child: Text("Erro de permissão ou conexão..."));
+                // Technical: Fallback gracefully on query error or unauthorized access
+                if (snapshot.hasError) {
+                  return _userRole == 'support'
+                      ? _buildSupportPantryGuidance()
+                      : const Center(
+                    child: Text(
+                      "Não foi possível carregar os itens no momento.",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
                 final allDocs = snapshot.data!.docs;
 
+                // Technical: Keep items created by support strictly within the 3-hour window
+                final eligibleDocs = allDocs.where((doc) {
+                  if (_hasPantryAccess || _userRole != 'support') return true;
+                  final data = doc.data() as Map<String, dynamic>;
+                  final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
+                  if (createdAt == null) return false;
+                  return DateTime.now().difference(createdAt).inMinutes <= 180;
+                }).toList();
+
+                // Technical: Render welcoming guidance if support has no recent deliveries within 3h
+                if (eligibleDocs.isEmpty && !_hasPantryAccess && _userRole == 'support') {
+                  return _buildSupportPantryGuidance();
+                }
+
                 // logic: client-side filtering based on _activeFilter
-                final docs = allDocs.where((doc) {
+                final docs = eligibleDocs.where((doc) {
                   if (_activeFilter == 'all') return true;
                   final loc = (doc.data() as Map<String, dynamic>)['location']?.toString().toLowerCase() ?? '';
-                  // matching 'fridge', 'freezer' or 'pantry'
                   return loc.contains(_activeFilter);
                 }).toList();
 
-                if (docs.isEmpty) return _buildEmptyState(isLocked: false);
+                if (docs.isEmpty) return _buildEmptyState(isLocked: !_hasPantryAccess);
 
                 return ListView.builder(
                   padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
@@ -329,7 +351,6 @@ class _StockScreenState extends State<StockScreen> {
                       item: item,
                       onConsume: () => _handleConsume(item),
                       onMove: () => showMoveStockModal(context, item),
-                      // Technical Lifecycle Sync: Open the newly created isolated correction modal
                       onEdit: (selectedItem) {
                         showDialog(
                           context: context,
@@ -420,6 +441,50 @@ class _StockScreenState extends State<StockScreen> {
                   : "Nenhum item cadastrado nesta categoria.",
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.grey, fontSize: 15),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSupportPantryGuidance() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: KinColors.primary.withValues(alpha: 0.08),
+                shape: BoxShape.circle
+              ),
+              child: const Icon(
+                Icons.kitchen_outlined,
+                size: 44,
+                color: KinColors.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Despensa & Estoque",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              "Para manter a organização e privacidade da casa, o estoque geral fica visível sob demanda. Se você estiver na casa e for apoiar no preparo das refeições, você pode solicitar a liberação temporária na aba Conta.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                height: 1.45,
+              ),
             ),
           ],
         ),

@@ -35,12 +35,23 @@ Caso deseje testar a esteira completa de segurança e ciclo de vida de dados:
 
 ---
 
+## 🏛️ Decisões Arquiteturais & Engenharia (ADRs)
+
+Para manter a aplicação 100% autônoma, segura para testes públicos e operando sem custos recorrentes de infraestrutura (*Spark Tier*), decisões formais de design de software e governança de custos foram documentadas:
+
+- **[ADR 001 — Desacoplamento de Triggers Serverless e Push Messaging](docs/ARCHITECTURE.md#1-adr-001-desacoplamento-de-triggers-serverless-e-push-messaging)**
+- **[Especificação Técnica — Matriz Sanitária e Ciclo de Vida do Estoque](docs/ARCHITECTURE.md#2-modelagem-sanitária-e-ciclo-de-vida-do-estoque)**
+- **[Segurança por Padrão — Governança de Acessos e Auditoria](docs/ARCHITECTURE.md#3-segurança-por-padrão-security-by-design)**
+
+Consulte o documento completo em [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+---
+
 ## 🛡️ Arquitetura & Security by Design
 
 * **Princípio do Menor Privilégio (PoLP):** Regras de segurança no Firestore garantem que usuários `pending` não possuam permissão de leitura ou escrita em coleções operacionais (`stock`, `orders`, `food_history`).
 * **Blindagem de Contas Demo:** Contas demonstrativas de sistema possuem regras imutáveis a nível de banco de dados, impedindo alterações acidentais de permissão ou exclusões indevidas.
 * **Governança de Credenciais:** O repositório não expõe chaves privadas, tokens ou arquivos de serviço de backend. A chave de API web opera com restrições explícitas de **Referenciadores HTTP** (`kincare-9b1d4.web.app`) e restrições de escopo de serviço.
-* **Otimização Spark Plan:** Toda a arquitetura foi desenhada para operação 100% serverless sem necessidade de Cloud Functions pagas, utilizando regras de segurança do Firestore, índices compostos enxutos e streams reativas do Flutter.
+* **Otimização Spark Plan & FinOps:** Toda a infraestrutura pública foi desenhada para operação 100% serverless dentro dos limites da camada gratuita (*Spark Tier*), utilizando regras atômicas de segurança no Firestore, índices compostos enxutos e streams reativas no cliente.
 
 ---
 

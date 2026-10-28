@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TimeHelper {
-  // Rule: Standard edit/action window is strictly 2 hours (120 min)
-  static const int editWindowMinutes = 120;
+  static const int editWindowMinutes = 180;
   static const int editWindowSeconds = editWindowMinutes * 60;
 
   // Logic: Check if a timestamp is still within the allowed operational window

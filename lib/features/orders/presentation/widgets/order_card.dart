@@ -49,7 +49,7 @@ class _OrderCardState extends State<OrderCard> {
     super.dispose();
   }
 
-  // Logic: Calculate remaining window time from Core and schedule a forced UI refresh
+// Logic: Calculate remaining window time from Core and schedule a forced UI refresh
   void _startCountdown() {
     if (widget.isManagement) return; // Management bypasses time rules entirely
 
@@ -62,8 +62,9 @@ class _OrderCardState extends State<OrderCard> {
     if (remainingSeconds > 0) {
       _expirationTimer = Timer(Duration(seconds: remainingSeconds), () {
         // Security Lifecycle Check: Ensure tree element is mounted before scheduling frame updates
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (remainingSeconds > 0) {
+          _expirationTimer = Timer(Duration(seconds: remainingSeconds), () {
+            // Security Lifecycle Check: Ensure tree element is mounted before scheduling frame updates
             if (mounted) {
               setState(() {});
             }
@@ -123,7 +124,7 @@ class _OrderCardState extends State<OrderCard> {
     final bool isAutoReorder = item['isReorder'] == true;
 
     // Rule: Fetch time validation directly from Core helper
-    final bool timeCheckPassed = widget.isManagement ? true : TimeHelper.isWithinWindow(createdAtTimestamp);
+    final bool timeCheckPassed = TimeHelper.isWithinWindow(createdAtTimestamp);
 
     // Security Matrix: Standard requests must be pending. Proactive tasks can be edited while preparing.
     bool statusAllowsEditing = false;
