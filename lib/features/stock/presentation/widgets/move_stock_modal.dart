@@ -187,7 +187,9 @@ class _MoveStockContentState extends State<_MoveStockContent> {
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.orange),
             SizedBox(width: 10),
-            Text("Confirmar movimentação"),
+            Expanded(
+                child: Text("Confirmar movimentação"),
+            )
           ],
         ),
         content: Column(
@@ -256,7 +258,9 @@ class _MoveStockContentState extends State<_MoveStockContent> {
               children: [
                 Icon(Icons.warning_amber_rounded, color: Colors.orange),
                 SizedBox(width: 10),
-                Text("Aviso Sanitário"),
+                Expanded(
+                    child: Text("Aviso Sanitário"),
+                )
               ],
             ),
             content: Text(
