@@ -11,9 +11,9 @@
 
 ## 📱 Interface & Experiência de Uso
 
-| Inventário & Validade Sanitária | Esteira Operacional de Pedidos | Diretrizes Técnicas & Arquitetura |
-| :---: | :---: | :---: |
-| <img src="assets/screenshots/print_01_stock.png" width="260" alt="Painel do Estoque"> | <img src="assets/screenshots/print_02_orders.png" width="260" alt="Esteira de Pedidos"> | <img src="assets/screenshots/print_03_guide.png" width="260" alt="Guia do Usuário"> |
+|                            Inventário & Validade Sanitária                            |                            Esteira Operacional de Pedidos                             |                          Diretrizes Técnicas & Arquitetura                          |
+|:-------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------:|
+| <img src="assets/screenshots/print_01_stock.PNG" width="260" alt="Painel do Estoque"> | <img src="assets/screenshots/print_02_orders.PNG" width="260" alt="Esteira de Pedidos"> | <img src="assets/screenshots/print_03_guide.PNG" width="260" alt="Guia do Usuário"> |
 
 ---
 
